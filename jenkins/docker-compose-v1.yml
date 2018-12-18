@@ -1,0 +1,37 @@
+version: '2'
+services:
+  jenkins:
+    image: jenkins/jenkins
+    container_name : 'x3-jenkins-f'
+    hostname: jenkins.train.x3rus.com
+    environment:
+      - TZ=America/Montreal
+    volumes:
+      - "/srv/docker/x3-jenkins-f/jenkins-data:/var/jenkins_home"
+    ports:
+      - 8080:8080   # Web interface
+      - 5000:5000   # Build Executors
+    links:
+      - gitlab:gitlab_server
+
+  gitlab:
+    image: 'gitlab/gitlab-ce:latest'
+    container_name : 'gitlab'
+    hostname: gitlab.marc.org
+    environment:
+      TZ: Europe/Paris
+      GITLAB_OMNIBUS_CONFIG: |
+        gitlab_rails['time_zone'] = 'Europe/Paris'
+        gitlab_rails['gitlab_email_from'] = 'dev@free.fr'
+        gitlab_rails['manage_backup_path'] = true
+        gitlab_rails['backup_path'] = "/var/opt/gitlab/backups"
+        gitlab_rails['backup_archive_permissions'] = 0640 
+        gitlab_rails['backup_keep_time'] = 604800
+        gitlab_rails['smtp_enable'] = true
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - '/srv/docker/gitlab/etc:/etc/gitlab'
+      - '/srv/docker/gitlab/logs:/var/log/gitlab'
+      - '/srv/docker/gitlab/data/:/var/opt/gitlab'
